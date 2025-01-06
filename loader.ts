@@ -64,7 +64,7 @@ export function githubFileLoader({ username, repo, processors }: PolicyLoaderCon
         load: async ({ generateDigest, store, config }: LoaderContext) => {
 			
 			const { tree } = await get<GithubTreeData>(gitTreeUrl, "json");
-			console.log(tree);
+			
 			let $ = createProcessors(processors);
             for await (const leaf of tree) {
                 // Can't do anything with a directory
@@ -75,7 +75,7 @@ export function githubFileLoader({ username, repo, processors }: PolicyLoaderCon
 				
                 const [id, extension] = leaf.path.split(".");
 				const { html, metadata } = await $[extension as keyof Processors](body, config);
-				console.log({ html, metadata, id, extension });
+				
                 store.set({
                     id,
                     // Need to pass an empty object to appease the typescript gods
