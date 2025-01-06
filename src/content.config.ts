@@ -1,6 +1,8 @@
 import { defineCollection } from "astro:content";
 import type { RenderedContent } from '../loader';
 import { githubFileLoader } from "../loader";
+// @astrojs/markdown-remark is an internal undocumented package
+// use at your own risk
 import { createMarkdownProcessor } from "@astrojs/markdown-remark";
 import type { MarkdownProcessor } from '@astrojs/markdown-remark';
 import type { AstroConfig } from "astro";
