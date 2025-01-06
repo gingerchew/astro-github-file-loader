@@ -1,48 +1,92 @@
-# Astro Starter Kit: Basics
+# Astro Github File Loader
 
-```sh
-npm create astro@latest -- --template basics
+> Load files stored in a Github Repository into your Astro Content Layer
+
+## How to use
+
+Check out the example in src/pages/[...name].astro to see it in action.
+
+```ts
+import { defineCollection } from 'astro:content';
+import { githubFileLoader } from 'astro-github-file-loader';
+
+export const collections = {
+    policies: defineCollection({
+        loader: githubFileLoader({
+            username: 'your-username',
+            repo: 'your-repo',
+            processors: {
+                md: yourMarkdownProcessor
+            }
+        })
+    })
+}
 ```
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/withastro/astro/tree/latest/examples/basics)
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/sandbox/github/withastro/astro/tree/latest/examples/basics)
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/withastro/astro?devcontainer_path=.devcontainer/basics/devcontainer.json)
+### How do processors work?
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Since GitHub can store any file, the processor object is passed in to be more flexible. For example, you could have a `frequent-configs` repo that has a mix of `.yaml`, `.toml`, and `.md` files.
 
-![just-the-basics](https://github.com/withastro/astro/assets/2244813/a0a5533c-a856-4198-8470-2d67b1d7c554)
+The GithubFileLoader fetches each file from the repo as text and then passes it to the processors to generate things like html, headings, image paths, etc. The object that it returns is then used in [the `rendered` field of the data store.](https://docs.astro.build/en/reference/content-loader-reference/#rendered) This makes it possible to use Astro to render the final content. Here is an example for how a markdown processor might look.
 
-## 🚀 Project Structure
+```ts
+import { yourMarkdownEngineOfChoice } from '...';
 
-Inside of your Astro project, you'll see the following folders and files:
+const engine = new yourMarkdownEngineOfChoice()
+/**
+ * @param {string} text - The text of the file from the GitHub repo
+ * @param {AstroConfig} config - The AstroConfig available in the LoaderContext
+ */
+async function myMarkdownProcessor(text: string, config: AstroConfig): Promise<RenderedContent> {
+    const html = engine.render(text);
+    const headings: MarkdownHeading[] = engine.getHeadings(text);
+    const frontmatter: Record<string, any> = engine.getFrontMatter(text);
+    const imagePaths: string[] = engine.images(text);
 
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src/
-│   ├── layouts/
-│   │   └── Layout.astro
-│   └── pages/
-│       └── index.astro
-└── package.json
+    return {
+        html,
+        metadata: {
+            headings,
+            frontmatter,
+            imagePaths,
+        }
+    }
+}
 ```
 
-To learn more about the folder structure of an Astro project, refer to [our guide on project structure](https://docs.astro.build/en/basics/project-structure/).
+The metadata object contains things like headings, frontmatter, imagePaths, and anything else you want. If you try to render a file without adding the appropriate processor, then it GithubFileLoader will return a RenderedContent object that looks like this:
 
-## 🧞 Commands
+```ts
+{
+    html: '',
+    metadata: {
+        error: 'No processor was found for the extension: .'+extension+', Did you forget to add one?'
+    }
+}
+```
 
-All commands are run from the root of the project, from a terminal:
+The text fetched from GitHub is used as the body in the data store, meaning the raw result is always available to you.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+## Example:
 
-## 👀 Want to learn more?
+```astro
+---
+import { getEntry, render } from 'astro:content';
+import TableOfContents from '../your/components/TableOfContents.astro';
 
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+// The collection name is defined by you
+// The entry name is the path to the file without the extension
+const entry = await getEntry('ghfiles', 'legal/privacy-policy');
+
+const { username, repo, extension, id } = entry.data;
+const { Content, headings } = await render(entry);
+---
+
+<Layout>
+    <div>
+        A file from the {repo} by GitHub user {username}: {id}.{extension}
+    </div>
+    <TableOfContents headings={headings}>
+    <Content />
+</Layout>
+```
