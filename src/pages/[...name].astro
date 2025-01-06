@@ -1,0 +1,18 @@
+---
+import type { GetStaticPaths } from "astro";
+import { getCollection, render } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+import { getEntry } from "astro:content";
+
+export const getStaticPaths = (async () => {
+    const collection = await getCollection("gh");
+    return collection.map(({ id }) => ({ params: { name: id } }))
+}) satisfies GetStaticPaths;
+const entry = await getEntry('gh', Astro.params.name)!;
+
+const { Content, headings } = await render(entry);
+---
+<Layout>
+    <Content />
+    <script type="application/json" set:html={JSON.stringify(headings, null,4)}></script>
+</Layout>
