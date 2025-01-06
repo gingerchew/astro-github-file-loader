@@ -1,0 +1,7 @@
+public/
+src/
+.vscode/
+.nvmrc
+astro.config.mjs
+tsconfig.json
+node_modules/
