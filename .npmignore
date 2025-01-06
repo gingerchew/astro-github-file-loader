@@ -6,3 +6,4 @@ astro.config.mjs
 tsconfig.json
 node_modules/
 .nvmrc
+.astro/
