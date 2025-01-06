@@ -8,6 +8,12 @@
     "preview": "astro preview",
     "astro": "astro"
   },
+  "repository": {
+    "url":"https://github.com/gingerchew/astro-github-file-loader",
+    "type": "git"
+  },
+  "homepage": "https://github.com/gingerchew/astro-github-file-loader",
+  "keywords": ["withastro","astro-loader","github"],
   "dependencies": {
     "astro": "^5.1.2"
   },
