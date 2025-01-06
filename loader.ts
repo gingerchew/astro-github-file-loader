@@ -70,11 +70,11 @@ export function githubFileLoader({ username, repo, processors }: PolicyLoaderCon
                 // Can't do anything with a directory
                 if (leaf.type === "tree") continue;
 				// Get whatever the file is as text
-                const text = await get<string>(url + leaf.path, "text");				
-                const digest = generateDigest(text);
+                const body = await get<string>(url + leaf.path, "text");				
+                const digest = generateDigest(body);
 				
                 const [id, extension] = leaf.path.split(".");
-				const { html, metadata } = await $[extension as keyof Processors](text, config);
+				const { html, metadata } = await $[extension as keyof Processors](body, config);
 				console.log({ html, metadata, id, extension });
                 store.set({
                     id,
@@ -85,7 +85,7 @@ export function githubFileLoader({ username, repo, processors }: PolicyLoaderCon
 						username,
 						repo,
 					},
-                    body: text,
+                    body,
                     rendered: {
                         html,
                         metadata,
