@@ -78,7 +78,6 @@ export function githubFileLoader({ username, repo, processors }: PolicyLoaderCon
 				
                 store.set({
                     id,
-                    // Need to pass an empty object to appease the typescript gods
                     data: {
 						id,
 						extension,
